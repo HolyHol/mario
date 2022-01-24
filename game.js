@@ -9,8 +9,10 @@ kaboom({
 const MOVE_SPEED = 120
 const JUMP_FORCE = 384
 const BIG_JUMP_FORCE = 500
-let CURRENT_JUMP_FORCE = JUMP_FORCE
 const ENEMY_MOVE_SPEED = 20
+let CURRENT_JUMP_FORCE = JUMP_FORCE
+let isJumping = false
+const FALL_DEATH = 320
 
 loadRoot('https://i.imgur.com/')
 loadSprite('coin', 'wbKxhcd.png')
@@ -151,7 +153,24 @@ scene("game", ({score}) => {
   })
 
   player.collides('dangerous', (d) => {
-    go('lose', {score: scoreLabel.value})
+    if (isJumping) {
+      destroy(d)
+    } else {
+      go('lose', {score: scoreLabel.value})
+    }
+  })
+
+  player.action(() => {
+    if(player.grounded()) {
+      isJumping = false
+    }
+  })
+
+  player.action(() => {
+    camPos(player.pos)
+    if(player.pos.y >= FALL_DEATH) {
+      go('lose', {score: scoreLabel.value})
+    }
   })
 
   keyDown('left', () => {
@@ -164,6 +183,7 @@ scene("game", ({score}) => {
 
   keyPress('space', () => {
     if(player.grounded()) {
+      isJumping = true
       player.jump(CURRENT_JUMP_FORCE)
     }
   })
